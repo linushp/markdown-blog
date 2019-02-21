@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="./static/css/index.css">
+</head>
+<body>
+
+<div id="mainBody">
+    <div class="mdblog-header">
+        Markdown Blog
+    </div>
+    <div class="mdblog-body">
+        <div class="mdblog-left-menu">
+            这里写菜单
+        </div>
+        <div class="mdblog-right-content">
+            <router-view></router-view>
+        </div>
+    </div>
+</div>
+
+
+</body>
+
+
+<script src="./static/lib/vue.min.js"></script>
+<script src="./static/lib/vue-router.min.js"></script>
+<script src="./static/lib/jquery.min.js"></script>
+<script src="./static/lib/marked.min.js"></script>
+<script>
+
+
+    var MarkdownPage = {
+        template:"<div v-html='md_html'></div>",
+        data:function () {
+            return {
+                md_html:"loading..."
+            };
+        },
+        watch: {
+            $route: function (to, from) {
+                this.initComponent();
+            }
+        },
+        created: function () {
+            this.initComponent();
+        },
+        methods:{
+            initComponent:function () {
+                var that = this;
+                var route_params = that.$route.params;
+                var fileName = route_params['fileName'];
+                $.get("./markdowns/" + fileName).then(function (value) {
+                    that.md_html = marked(value);
+                });
+            }
+        }
+
+    };
+
+
+    var router = new VueRouter({
+        mode: "hash",//window.history.pushState ? 'history' : 'hash',
+        routes: [
+            {path: '/m/:fileName', component: MarkdownPage},
+            {path: '/*', redirect: "/m/home.md"}
+        ],
+        scrollBehavior: function (to, from, savedPosition) {
+            if (savedPosition) {
+                return savedPosition
+            }
+            return {x: 0, y: 0}
+        }
+    });
+
+    var app = new Vue({el: '#mainBody', router: router});
+    window.ubibiApp = app;
+
+</script>
+
+</html>
